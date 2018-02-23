@@ -1,21 +1,18 @@
+#!/usr/bin/env python3
+
 from argparse import ArgumentParser
 
-__description__ = "Convert text or binary into base56 encoded data"
+__doc__ = "Convert text or binary into base56 encoded data"
 __version__ = "0.0.1-git"
 
-ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz'
-pad = '='
-
-
-def main():
-    pass  # todo
+ALPHABET = b'23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz'
 
 
 def encode(data):
     '''
     Return data encoded in base56
 
-    Throws TypeError is data is not string or bytes
+    Throws TypeError if data is not string or bytes
 
     Parameters:
         data: string or bytes
@@ -26,14 +23,24 @@ def encode(data):
             the data encoded in base56
 
     '''
-    if type(data) == str:
+    if isinstance(data, str):
         data = data.encode()
 
-    if type(data) != bytes:
+    if not isinstance(data, bytes):
         raise TypeError("data should be bytes or string")
 
-    for char in data:
-        pass  # todo
+    digit_place = 1
+    number = 0
+    for char in reversed(data):
+        number += digit_place * char
+        digit_place << 8  # move to next byte
+
+    result = bytes()
+    while number > 0:
+        number, index = divmod(number, 56)
+        result = bytes([ALPHABET[index]]) + result
+
+    return result
 
 
 def decode(data):
@@ -41,9 +48,10 @@ def decode(data):
     Return data as string
 
     Throws ValueError if data is not a valid base56 string
+    Throws UnicodeEncodeException if data is outside of the ascii range
 
     Parameters:
-        data: string
+        data: string or bytes
             data to decode
 
     Returns:
@@ -55,5 +63,3 @@ def decode(data):
         pass  # todo
 
 
-if __name__ == "__main__":
-    main()
